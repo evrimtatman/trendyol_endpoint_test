@@ -21,13 +21,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 
-/**
- * Created by Bulut Cakan (179997) on
- * Hour :14:47
- * Day: Monday
- * Month:January
- * Year:2021
- */
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ApiTestApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @Ignore
