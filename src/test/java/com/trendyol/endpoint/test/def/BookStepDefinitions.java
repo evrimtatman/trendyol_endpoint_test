@@ -1,88 +1,119 @@
 package com.trendyol.endpoint.test.def;
 
-import com.trendyol.endpoint.test.configuration.CommonHttpMethods;
-import com.trendyol.endpoint.test.constants.EndPointTestConstants;
 import com.trendyol.endpoint.test.model.Book;
+import com.trendyol.endpoint.test.service.impl.RequestServiceImpl;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.junit.Assert;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
 
-public class BookStepDefinitions extends CommonHttpMethods {
-
+public class BookStepDefinitions extends RequestServiceImpl {
 
     static ResponseEntity response;
 
-    static Book bookMock;
+    static Book mockBook;
 
-
-    @When("user calls \\/api\\/books")
-    public void userCallsApiBooks() {
-        response = executeGet(EndPointTestConstants.URL);
+    @When("user calls all books \\/api\\/books")
+    public void userCallsAllBooksApiBooks() {
+        response = executeGet();
     }
 
     @Then("receives status code of {int}")
     public void receivesStatusCodeOf(int arg0) {
-        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
-
+        Assert.assertEquals(arg0, response.getStatusCode().value());
     }
 
-    @And("empty book list")
-    public void emptyBookList() {
-        List<Book> books = (List<Book>) response.getBody();
-        Assert.assertEquals(0, books.size());
+    @And("check empty book list")
+    public void checkEmptyBookList() {
+        List<Book> list = (List<Book>) response.getBody();
+        Assert.assertTrue(CollectionUtils.isEmpty(list));
     }
 
-    @When("user  calls \\/api\\/books with author and title")
-    public void userCallsApiBooksWithAuthorAndTitle() {
+
+    @Given("add mock book object title {string} author {string}")
+    public void addMockBookObjectTitleAuthor(String title, String author) {
+        mockBook = new Book();
+        mockBook.setTitle(title);
+        mockBook.setAuthor(author);
+    }
+
+    @When("user  calls put endpoint \\/api\\/books\\/")
+    public void userCallsPutEndpointApiBooks() {
+        response = executePut(mockBook);
     }
 
     @Then("the client receives status code of {int}")
-    public void theClientReceivesStatusCodeOf(int arg0) {
+    public void theClientReceivesStatusCodeOf(int code) {
+        Assert.assertEquals(code, response.getStatusCode().value());
+    }
+
+    @And("created book return")
+    public void createdBookReturn() {
+        Book book = getModelMapper().map(response.getBody(), Book.class);
+        Assert.assertNotNull(book);
+        mockBook = book;
     }
 
     @Given("there are books added on store")
     public void thereAreBooksAddedOnStore() {
-    }
+        response = executeGet();
+        List list = getModelMapper().map(
+                response.getBody(), List.class);
+        Assert.assertTrue(!CollectionUtils.isEmpty(list));
 
-    @When("user  calls \\/api\\/books\\/id")
-    public void userCallsApiBooksId() {
-    }
-
-    @And("book list with related id")
-    public void bookListWithRelatedId() {
     }
 
 
-    @Given("add mock book object")
-    public void add_mock_book_object() {
-        bookMock = new Book();
-        bookMock.setAuthor("Evrimcik2");
-        bookMock.setTitle("Minicik Ayaklar");
-    }
-
-    @When("user send put request to \\/api\\/books\\/")
-    public void user_send_put_request_to_api_books() {
-        response = executePut(EndPointTestConstants.URL, bookMock);
-    }
-
-    @Then("the client receives status code of 201")
-    public void created_book_return() {
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-    }
-
-    @And("^created book return$")
-    public void createdBookReturn() {
-        Book registeredBook = (Book) response.getBody();
-        Assert.assertEquals(bookMock.getAuthor(), registeredBook.getAuthor());
-        Assert.assertEquals(bookMock.getTitle(), registeredBook.getTitle());
+    @When("user  calls \\/api\\/books\\/id {int}")
+    public void userCallsApiBooksId(int id) {
+        response = executeGetById(id);
+        mockBook = getModelMapper().map(response.getBody(), Book.class);
+        Assert.assertNotNull(mockBook);
     }
 
 
+    @And("check book  with related id {int}")
+    public void checkBookWithRelatedId(int arg0) {
+        Assert.assertEquals(arg0, mockBook.getBookId().intValue());
+    }
+
+
+    @When("user calls all books \\/api\\/books\\/id {int}")
+    public void userCallsAllBooksApiBooksId(int id) {
+        response = executeGetById(id);
+        mockBook = getModelMapper().map(response.getBody(), Book.class);
+    }
+
+    @And("check book is exist")
+    public void checkBookIsExist() {
+        Assert.assertNotNull(mockBook);
+    }
+
+    @When("user can add new book same author and title")
+    public void userCanAddNewBookSameAuthorAndTitle() {
+        Book book = new Book();
+        book.setAuthor(mockBook.getAuthor());
+        book.setTitle(mockBook.getTitle());
+        response = executePut(book);
+    }
+
+    @Given("create book with given {int}")
+    public void createBookWithGiven(int arg0) {
+        Book book = new Book();
+        book.setBookId(arg0);
+        book.setAuthor(mockBook.getAuthor());
+        book.setTitle(mockBook.getTitle());
+        mockBook = book;
+    }
+
+    @Then("user  calls put book endpoint")
+    public void userCallsPutBookEndpoint() {
+        response = executePut(mockBook);
+    }
 }
