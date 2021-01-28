@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
@@ -67,6 +68,12 @@ public class RequestServiceImpl implements RequestService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Book> entity = new HttpEntity<Book>(book, headers);
-        return restTemplate.exchange(commonProperties.getBaseUrl(), HttpMethod.PUT, entity, Object.class);
+        ResponseEntity<Object> exchange = null;
+        try {
+            exchange = restTemplate.exchange(commonProperties.getBaseUrl(), HttpMethod.PUT, entity, Object.class);
+        } catch (HttpStatusCodeException e) {
+            return ResponseEntity.status(e.getRawStatusCode()).headers(e.getResponseHeaders())
+                    .body(e.getResponseBodyAsString());        }
+        return exchange;
     }
 }
