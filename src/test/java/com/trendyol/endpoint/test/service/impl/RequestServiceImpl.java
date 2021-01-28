@@ -62,11 +62,17 @@ public class RequestServiceImpl implements RequestService {
     }
 
 
-    @Override
+   @Override
     public ResponseEntity executePut(Book book) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Book> entity = new HttpEntity<Book>(book, headers);
-        return restTemplate.exchange(commonProperties.getBaseUrl(), HttpMethod.PUT, entity, Object.class);
+        ResponseEntity<Object> exchange = null;
+        try {
+            exchange = restTemplate.exchange(commonProperties.getBaseUrl(), HttpMethod.PUT, entity, Object.class);
+        } catch (HttpStatusCodeException e) {
+            return ResponseEntity.status(e.getRawStatusCode()).headers(e.getResponseHeaders())
+                    .body(e.getResponseBodyAsString());        }
+        return exchange;
     }
 }
